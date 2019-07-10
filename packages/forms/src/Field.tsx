@@ -12,6 +12,12 @@ const enhancer: any = compose(
   setDisplayName('Field'),
 );
 
+// @ts-ignore
+const hackMultiple = R.memoizeWith(R.identity, (component) => ({ tempMultiple, ...props }) => React.createElement(component, {
+  ...props,
+  multiple: tempMultiple,
+}));
+
 /**
  * `Field` wrapper based on `Field` from the [`react-final-form`](https://github.com/final-form/react-final-form). That accept [`FieldProps`](https://github.com/final-form/react-final-form#fieldprops) props and some extra props for easy working with 8base API.
  * @prop {FieldSchema} [fieldSchema] - The 8base API field schema.
@@ -33,6 +39,12 @@ const Field: React.ComponentType<FinalFieldProps<any, any>> = enhancer(
 
     public render() {
       const collectedProps: FieldProps = this.collectProps(this.props);
+
+      // Temp fix, waiting for update https://github.com/final-form/react-final-form/releases/tag/v6.3.1
+      if (typeof collectedProps.component === 'function' && collectedProps.multiple) {
+        collectedProps.tempMultiple = collectedProps.multiple
+        collectedProps.component = hackMultiple(collectedProps.component);
+      }
 
       return <FinalField {...collectedProps} />;
     }
